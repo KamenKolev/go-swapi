@@ -49,13 +49,12 @@ type swapiMultipleResourcesResponse[T any] struct {
 func getAllFromSwapi[T any](resourceName string, requestFn func(page int, resourceName string) (swapiMultipleResourcesResponse[T], error)) []T {
 	firstRes, initialGetError := requestFn(1, resourceName)
 	if initialGetError != nil {
-		fmt.Println("initial get error", initialGetError)
+		fmt.Println("initial get error for", resourceName)
+		fmt.Println(initialGetError)
 	}
 
 	results := make([]T, firstRes.Count)
-	for i, v := range firstRes.Results {
-		results[i] = v
-	}
+	copy(results, firstRes.Results)
 
 	pages := int(math.Ceil(float64(firstRes.Count) / 10))
 
@@ -73,14 +72,15 @@ func getAllFromSwapi[T any](resourceName string, requestFn func(page int, resour
 }
 
 func getFromPage[T any](page int, resourceName string) (swapiMultipleResourcesResponse[T], error) {
-	resp, err := http.Get(strings.Join([]string{usedDomain, resourceName, "?page=", strconv.Itoa(page)}, ""))
+	url := strings.Join([]string{apiDomain, resourceName, "?page=", strconv.Itoa(page)}, "")
+	resp, err := http.Get(url)
 
 	if err != nil {
 		// TODO infinite retry could totally backfire
-		fmt.Println("retrying getFromPage")
+		fmt.Println("Failed getFromPage for", resourceName, "from", url)
 
 		// Toggles requests between the two domains
-		switchUsedDomain()
+		// switchUsedDomain()
 
 		return getFromPage[T](page, resourceName)
 	} else {

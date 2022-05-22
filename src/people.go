@@ -75,12 +75,12 @@ func swapiPersonToPerson(swapiPerson swapiPersonDTO) (personDTO, error) {
 }
 
 func handleGetPeople() func(http.ResponseWriter, *http.Request) {
-	swapiDTOs := getAllFromSwapi[swapiPersonDTO]("people", getFromPage[swapiPersonDTO])
-	people, conversionError := convertMany[swapiPersonDTO, personDTO](swapiDTOs, swapiPersonToPerson)
+	swapiDTOs := getAllFromSwapi("people", getFromPage[swapiPersonDTO])
+	people, conversionError := convertMany(swapiDTOs, swapiPersonToPerson)
 	if conversionError != nil {
 		log.Fatalln("people conversion error", conversionError)
 	}
-	json, marshallingError := marshal[personDTO](people)
+	json, marshallingError := marshal(people)
 	if marshallingError != nil {
 		log.Fatalln("people marshalling error", marshallingError)
 	}

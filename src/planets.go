@@ -59,12 +59,12 @@ func swapiPlanetToPlanet(swapiPlanet swapiPlanetDTO) (planetDTO, error) {
 }
 
 func handleGetPlanets() func(http.ResponseWriter, *http.Request) {
-	swapiDTOs := getAllFromSwapi[swapiPlanetDTO]("planets", getFromPage[swapiPlanetDTO])
-	planets, conversionError := convertMany[swapiPlanetDTO, planetDTO](swapiDTOs, swapiPlanetToPlanet)
+	swapiDTOs := getAllFromSwapi("planets", getFromPage[swapiPlanetDTO])
+	planets, conversionError := convertMany(swapiDTOs, swapiPlanetToPlanet)
 	if conversionError != nil {
 		log.Fatalln("Planets conversion error", conversionError)
 	}
-	json, marshallingError := marshal[planetDTO](planets)
+	json, marshallingError := marshal(planets)
 	if marshallingError != nil {
 		log.Fatalln("Planets marshalling error", marshallingError)
 	}
