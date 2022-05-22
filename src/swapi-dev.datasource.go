@@ -63,12 +63,15 @@ const SWAPIDevAPIURL = "https://swapi.dev/api/"
 func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 	requestFn := getFromPage[T]
 	firstRes, initialGetError := requestFn(1, resourceName)
+	results := []T{}
+
 	if initialGetError != nil {
 		fmt.Println("initial get error for", resourceName)
 		fmt.Println(initialGetError)
+		return results, initialGetError
 	}
 
-	results := make([]T, firstRes.Count)
+	// results := make([]T, firstRes.Count)
 	copy(results, firstRes.Results)
 
 	pages := int(math.Ceil(float64(firstRes.Count) / 10))
@@ -91,33 +94,29 @@ func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 func getFromPage[T any](page int, resourceName string) (SWAPIDevMultiResourceResponse[T], error) {
 	url := strings.Join([]string{SWAPIDevAPIURL, resourceName, "?page=", strconv.Itoa(page)}, "")
 	resp, err := http.Get(url)
+	var results SWAPIDevMultiResourceResponse[T]
 
 	if err != nil {
-		// TODO infinite retry could totally backfire
 		fmt.Println("Failed getFromPage for", resourceName, "from", url)
 
-		// Toggles requests between the two domains
-		// switchUsedDomain()
-
-		return getFromPage[T](page, resourceName)
+		return results, err
 	} else {
 		body, readingError := ioutil.ReadAll(resp.Body)
-		var unmarshalled SWAPIDevMultiResourceResponse[T]
 
 		if readingError != nil {
 			fmt.Println("readingError error thrown")
 			fmt.Println(readingError)
-			return unmarshalled, readingError
+			return results, readingError
 		}
 
-		unmarshallingError := json.Unmarshal(body, &unmarshalled)
+		unmarshallingError := json.Unmarshal(body, &results)
 
 		if unmarshallingError != nil {
 			fmt.Println("unmarshalling error thrown")
 			fmt.Println(unmarshallingError)
-			return unmarshalled, unmarshallingError
+			return results, unmarshallingError
 		}
 
-		return unmarshalled, nil
+		return results, nil
 	}
 }

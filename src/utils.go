@@ -27,6 +27,9 @@ func numericStringOrUnknownToFloatOrNil(s string) (any, error) {
 	if s == "unknown" {
 		return nil, nil
 	}
+	if s == "" {
+		return nil, nil
+	}
 
 	// The API uses commas to signify thousands. They don't play well with ParseFloat
 	s = strings.ReplaceAll(s, ",", "")
@@ -55,9 +58,13 @@ func convertMany[I any, O any](inputs []I, converter func(I) (O, error)) ([]O, e
 
 func getReadAndUnmarshall[T any](url string) (T, error) {
 	resp, err := http.Get(url)
+	var result T
+
+	if resp.StatusCode != 200 {
+		return result, err
+	}
 
 	// wow this is hacky. Totally nil
-	var result T
 	if err != nil {
 		return result, err
 	}

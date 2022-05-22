@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -23,8 +25,8 @@ type SWAPITechResResource struct {
 }
 
 type SWAPITechSingleResourceResponse[T any] struct {
-	Message string `json:"message"`
-	Result  T      `json:"result"`
+	Message string                     `json:"message"`
+	Result  SWAPITechResourceResult[T] `json:"result"`
 }
 type SWAPITechPerson struct {
 	BirthYear string    `json:"birth_year"`
@@ -63,23 +65,39 @@ type SWAPITechPlanet struct {
 	URL            string    `json:"url"`
 }
 
-const SWAPITechAPIURL = "https://swapi.dev/api/"
+const SWAPITechAPIURL = "https://swapi.tech/api/"
 
 // resourceName is  should be in plural (people / planets)
 func SWAPITech_getAll[T any](resourceName string) ([]T, error) {
+	fmt.Println("SWAPPI TECH GETALL TRIGGERED", resourceName)
 	url := strings.Join([]string{SWAPITechAPIURL, resourceName, "?page=1&limit=100000"}, "")
 	initalResponse, err := getReadAndUnmarshall[SWAPITechResponse](url)
+	fmt.Println("initial response", initalResponse)
+
 	results := []T{}
 
 	if err != nil {
 		return results, err
 	}
 
+	// The requests are ran in parallel for better perf
+	wg := sync.WaitGroup{}
+
 	for _, v := range initalResponse.Results {
-		// TODO handle error
-		item, _ := getReadAndUnmarshall[T](v.URL)
-		results = append(results, item)
+		wg.Add(1)
+		go func(v SWAPITechResResource) {
+
+			fmt.Println("SWAPPI TECH REQUEST TRIGGERED", resourceName, v)
+			item, error := getReadAndUnmarshall[SWAPITechSingleResourceResponse[T]](v.URL)
+			if error != nil {
+				fmt.Println("ERROR read or unmarshal?", resourceName, v.URL)
+			}
+			results = append(results, item.Result.Properties)
+			wg.Done()
+		}(v)
+
 	}
+	wg.Wait()
 
 	return results, nil
 }

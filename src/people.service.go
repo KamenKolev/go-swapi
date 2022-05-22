@@ -16,8 +16,14 @@ type personDTO struct {
 	Name      string    `json:"name"`
 }
 
+// TODO utilize constraints to dedupe
+// type APIPersonDTO interface {
+//   SWAPIDevPerson | SWAPITechPerson
+// }
+
 // TODO dedupe with swapi dev function
-func convertSWAPITechPersonToPerson(swapiPerson SWAPITechPerson) (personDTO, error) {
+func convertSWAPIPersonToPerson(swapiPerson SWAPITechPerson) (personDTO, error) {
+	fmt.Println("CONVERTING", swapiPerson)
 	height, heightConversionError := numericStringOrUnknownToFloatOrNil(swapiPerson.Height)
 	if heightConversionError != nil {
 		return personDTO{}, heightConversionError
@@ -103,7 +109,8 @@ func getAllPeople() ([]personDTO, error) {
 		if SWAPITechError != nil {
 			return results, SWAPITechError
 		}
-		people, conversionError := convertMany(SWAPITechResults, convertSWAPITechPersonToPerson)
+		fmt.Println("SWAPITechResults", SWAPITechResults)
+		people, conversionError := convertMany(SWAPITechResults, convertSWAPIPersonToPerson)
 		if conversionError != nil {
 			log.Fatalln("people conversion error", conversionError)
 		}
