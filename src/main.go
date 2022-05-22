@@ -5,11 +5,11 @@ import (
 )
 
 // The API has downtime. Luckily, there's another version of it for which an adapter can be written
-const mainDomain = "https://swapi.dev/api/"
+// const mainDomain = "https://swapi.dev/api/"
 
 // const secondaryDomain = "https://swapi.tech/api/"
 
-var apiDomain string // one of the above
+// var apiDomain string // one of the above
 // func switchUsedDomain() {
 // 	if apiDomain == mainDomain {
 // 		apiDomain = secondaryDomain
@@ -19,9 +19,9 @@ var apiDomain string // one of the above
 // }
 
 func main() {
-	apiDomain = mainDomain
+	// apiDomain = mainDomain
 
-	http.HandleFunc("/people", handleGetPeople())
-	http.HandleFunc("/planets", handleGetPlanets())
+	http.HandleFunc("/people", peopleController())
+	http.HandleFunc("/planets", planetsController())
 	http.ListenAndServe(":8080", nil)
 }

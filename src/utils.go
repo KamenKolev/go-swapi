@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ func addHeaders(w http.ResponseWriter) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 }
 
+// TODO would this also work for swapi tech urls?
 // Would return 2 for a URL such as "https://swapi.dev/api/planets/2/"
 func getResourceIDFromURL(url string) (int, error) {
 	urlSplit := strings.Split(url, "/")
@@ -39,72 +39,6 @@ func numericStringOrUnknownToFloatOrNil(s string) (any, error) {
 	return number, nil
 }
 
-type swapiMultipleResourcesResponse[T any] struct {
-	Count    int `json:"count"`
-	Next     any `json:"next"`     // nil | string
-	Previous any `json:"previous"` // nil | string
-	Results  []T `json:"results"`
-}
-
-func getAllFromSwapi[T any](resourceName string, requestFn func(page int, resourceName string) (swapiMultipleResourcesResponse[T], error)) []T {
-	firstRes, initialGetError := requestFn(1, resourceName)
-	if initialGetError != nil {
-		fmt.Println("initial get error for", resourceName)
-		fmt.Println(initialGetError)
-	}
-
-	results := make([]T, firstRes.Count)
-	copy(results, firstRes.Results)
-
-	pages := int(math.Ceil(float64(firstRes.Count) / 10))
-
-	for page := 2; page <= pages; page++ {
-		res, error := requestFn(page, resourceName)
-		if error != nil {
-			fmt.Println(error)
-		}
-		for i, v := range res.Results {
-			results[i+page*10-10] = v
-		}
-	}
-
-	return results
-}
-
-func getFromPage[T any](page int, resourceName string) (swapiMultipleResourcesResponse[T], error) {
-	url := strings.Join([]string{apiDomain, resourceName, "?page=", strconv.Itoa(page)}, "")
-	resp, err := http.Get(url)
-
-	if err != nil {
-		// TODO infinite retry could totally backfire
-		fmt.Println("Failed getFromPage for", resourceName, "from", url)
-
-		// Toggles requests between the two domains
-		// switchUsedDomain()
-
-		return getFromPage[T](page, resourceName)
-	} else {
-		body, readingError := ioutil.ReadAll(resp.Body)
-		var unmarshalled swapiMultipleResourcesResponse[T]
-
-		if readingError != nil {
-			fmt.Println("readingError error thrown")
-			fmt.Println(readingError)
-			return unmarshalled, readingError
-		}
-
-		unmarshallingError := json.Unmarshal(body, &unmarshalled)
-
-		if unmarshallingError != nil {
-			fmt.Println("unmarshalling error thrown")
-			fmt.Println(unmarshallingError)
-			return unmarshalled, unmarshallingError
-		}
-
-		return unmarshalled, nil
-	}
-}
-
 func convertMany[I any, O any](inputs []I, converter func(I) (O, error)) ([]O, error) {
 	results := make([]O, len(inputs))
 	for i, v := range inputs {
@@ -119,12 +53,24 @@ func convertMany[I any, O any](inputs []I, converter func(I) (O, error)) ([]O, e
 	return results, nil
 }
 
-func marshal[T any](data []T) ([]byte, error) {
-	resultsJSON, marshallingError := json.Marshal(data)
+func getReadAndUnmarshall[T any](url string) (T, error) {
+	resp, err := http.Get(url)
 
-	if marshallingError != nil {
-		return nil, nil
-	} else {
-		return resultsJSON, nil
+	// wow this is hacky. Totally nil
+	var result T
+	if err != nil {
+		return result, err
 	}
+
+	body, readingError := ioutil.ReadAll(resp.Body)
+	if readingError != nil {
+		return result, err
+	}
+
+	unmarshallingError := json.Unmarshal(body, &result)
+	if unmarshallingError != nil {
+		return result, err
+	}
+
+	return result, nil
 }
