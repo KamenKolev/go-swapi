@@ -14,11 +14,11 @@ func addHeaders(w http.ResponseWriter) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 }
 
-// TODO would this also work for swapi tech urls?
 // Would return 2 for a URL such as "https://swapi.dev/api/planets/2/"
 func getResourceIDFromURL(url string) (int, error) {
-	urlSplit := strings.Split(url, "/")
-	id := urlSplit[len(urlSplit)-2]
+	// Trailing slash is present in .dev, but not in .tech
+	urlSplit := strings.Split(strings.TrimSuffix(url, "/"), "/")
+	id := urlSplit[len(urlSplit)-1]
 	intID, stringConversionError := strconv.Atoi(id)
 	return intID, stringConversionError
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// TODO rename
 // generated with https://mholt.github.io/json-to-go/
 type SWAPITechResponse struct {
 	Message      string                 `json:"message"`
