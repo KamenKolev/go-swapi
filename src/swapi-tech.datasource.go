@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -79,24 +78,15 @@ func SWAPITech_getAll[T any](resourceName string) ([]T, error) {
 		return results, err
 	}
 
-	// The requests are ran in parallel for better perf
-	wg := sync.WaitGroup{}
-
 	for _, v := range initalResponse.Results {
-		wg.Add(1)
-		go func(v SWAPITechResResource) {
-
-			fmt.Println("SWAPPI TECH REQUEST TRIGGERED", resourceName, v)
-			item, error := getReadAndUnmarshall[SWAPITechSingleResourceResponse[T]](v.URL)
-			if error != nil {
-				fmt.Println("ERROR read or unmarshal?", resourceName, v.URL)
-			}
-			results = append(results, item.Result.Properties)
-			wg.Done()
-		}(v)
+		fmt.Println("SWAPPI TECH REQUEST TRIGGERED", resourceName, v)
+		item, error := getReadAndUnmarshall[SWAPITechSingleResourceResponse[T]](v.URL)
+		if error != nil {
+			fmt.Println("ERROR read or unmarshal?", resourceName, v.URL, error)
+		}
+		results = append(results, item.Result.Properties)
 
 	}
-	wg.Wait()
 
 	return results, nil
 }

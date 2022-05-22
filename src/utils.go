@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func addHeaders(w http.ResponseWriter) {
@@ -60,6 +61,12 @@ func getReadAndUnmarshall[T any](url string) (T, error) {
 	resp, err := http.Get(url)
 	var result T
 
+	if resp.StatusCode == http.StatusTooManyRequests {
+		fmt.Println("Received a 409 for", url)
+		time.Sleep(time.Minute)
+		return getReadAndUnmarshall[T](url)
+	}
+
 	if resp.StatusCode != 200 {
 		return result, err
 	}
@@ -71,12 +78,13 @@ func getReadAndUnmarshall[T any](url string) (T, error) {
 
 	body, readingError := ioutil.ReadAll(resp.Body)
 	if readingError != nil {
-		return result, err
+		return result, readingError
 	}
 
+	// ! result is null here?
 	unmarshallingError := json.Unmarshal(body, &result)
 	if unmarshallingError != nil {
-		return result, err
+		return result, unmarshallingError
 	}
 
 	return result, nil

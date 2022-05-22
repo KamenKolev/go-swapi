@@ -80,7 +80,6 @@ func convertSWAPIDevPersonToPerson(swapiPerson SWAPIDevPerson) (personDTO, error
 		return personDTO{}, massConvError
 	}
 
-	// TODO check if this is also the case in swapi.tech
 	// Planet 28 is "unknown" and has zero other useful info. Better return null instead
 	if homeworld == 28 {
 		homeworld = nil
