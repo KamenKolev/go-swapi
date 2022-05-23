@@ -23,7 +23,7 @@ type personDTO struct {
 
 // TODO dedupe with swapi dev function
 func convertSWAPIPersonToPerson(swapiPerson SWAPITechPerson) (personDTO, error) {
-	fmt.Println("CONVERTING", swapiPerson)
+	fmt.Println("[people.service convertSWAPIPersonToPerson]", "converting", swapiPerson)
 	height, heightConversionError := numericStringOrUnknownToFloatOrNil(swapiPerson.Height)
 	if heightConversionError != nil {
 		return personDTO{}, heightConversionError
@@ -103,21 +103,20 @@ func getAllPeople() ([]personDTO, error) {
 	SWAPIDevResults, SWAPIDevError := getAllFromSWAPIDev[SWAPIDevPerson]("people")
 
 	if SWAPIDevError != nil {
-		fmt.Println("SWAPIDevError", SWAPIDevError)
+		fmt.Println("[people.service getAllPeople]", "SWAPIDevError", SWAPIDevError)
 		SWAPITechResults, SWAPITechError := SWAPITech_getAll[SWAPITechPerson]("people")
 		if SWAPITechError != nil {
 			return results, SWAPITechError
 		}
-		fmt.Println("SWAPITechResults", SWAPITechResults)
 		people, conversionError := convertMany(SWAPITechResults, convertSWAPIPersonToPerson)
 		if conversionError != nil {
-			log.Fatalln("people conversion error", conversionError)
+			log.Fatalln("[people.service getAllPeople]", "swapiTech people conversion error", conversionError)
 		}
 		return people, nil
 	} else {
 		people, conversionError := convertMany(SWAPIDevResults, convertSWAPIDevPersonToPerson)
 		if conversionError != nil {
-			log.Fatalln("people conversion error", conversionError)
+			log.Fatalln("[people.service getAllPeople]", "swapiDev people conversion error", conversionError)
 		}
 		return people, nil
 	}

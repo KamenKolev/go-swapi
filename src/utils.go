@@ -48,7 +48,7 @@ func convertMany[I any, O any](inputs []I, converter func(I) (O, error)) ([]O, e
 	for i, v := range inputs {
 		output, err := converter(v)
 		if err != nil {
-			fmt.Println("Person Conversion error thrown", err, v)
+			fmt.Println("[utils convertMany]", "error thrown", err, v)
 			return results, err
 		}
 		results[i] = output
@@ -62,7 +62,7 @@ func getReadAndUnmarshall[T any](url string) (T, error) {
 	var result T
 
 	if resp.StatusCode == http.StatusTooManyRequests {
-		fmt.Println("Received a 409 for", url)
+		fmt.Println("[utils getReadAndUnmarshall]", "Received a 409 for", url)
 		time.Sleep(time.Minute)
 		return getReadAndUnmarshall[T](url)
 	}
@@ -71,7 +71,6 @@ func getReadAndUnmarshall[T any](url string) (T, error) {
 		return result, err
 	}
 
-	// wow this is hacky. Totally nil
 	if err != nil {
 		return result, err
 	}
@@ -81,7 +80,6 @@ func getReadAndUnmarshall[T any](url string) (T, error) {
 		return result, readingError
 	}
 
-	// ! result is null here?
 	unmarshallingError := json.Unmarshal(body, &result)
 	if unmarshallingError != nil {
 		return result, unmarshallingError

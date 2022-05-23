@@ -66,12 +66,10 @@ func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 	results := []T{}
 
 	if initialGetError != nil {
-		fmt.Println("initial get error for", resourceName)
-		fmt.Println(initialGetError)
+		fmt.Println("[swapi-dev.datasource getAllFromSWAPIDev]", "initial get error for", resourceName, initialGetError)
 		return results, initialGetError
 	}
 
-	// results := make([]T, firstRes.Count)
 	copy(results, firstRes.Results)
 
 	pages := int(math.Ceil(float64(firstRes.Count) / 10))
@@ -79,7 +77,7 @@ func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 	for page := 2; page <= pages; page++ {
 		res, error := requestFn(page, resourceName)
 		if error != nil {
-			fmt.Println("getAllFromSWAPIDev failed for page", page, "resource", resourceName)
+			fmt.Println("[swapi-dev.datasource getAllFromSWAPIDev]", "request failed for page", page, "resource", resourceName)
 			return results, error
 		}
 		for i, v := range res.Results {
@@ -90,30 +88,27 @@ func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 	return results, nil
 }
 
-// Why do we need this as an exported fn?
 func getFromPage[T any](page int, resourceName string) (SWAPIDevMultiResourceResponse[T], error) {
 	url := strings.Join([]string{SWAPIDevAPIURL, resourceName, "?page=", strconv.Itoa(page)}, "")
 	resp, err := http.Get(url)
 	var results SWAPIDevMultiResourceResponse[T]
 
 	if err != nil {
-		fmt.Println("Failed getFromPage for", resourceName, "from", url)
+		fmt.Println("[swapi-dev.datasource getFromPage]", "Failed for", resourceName, "from", url)
 
 		return results, err
 	} else {
 		body, readingError := ioutil.ReadAll(resp.Body)
 
 		if readingError != nil {
-			fmt.Println("readingError error thrown")
-			fmt.Println(readingError)
+			fmt.Println("[swapi-dev.datasource getFromPage]", "readingError error thrown", readingError)
 			return results, readingError
 		}
 
 		unmarshallingError := json.Unmarshal(body, &results)
 
 		if unmarshallingError != nil {
-			fmt.Println("unmarshalling error thrown")
-			fmt.Println(unmarshallingError)
+			fmt.Println("[swapi-dev.datasource getFromPage]", "unmarshalling error thrown", unmarshallingError)
 			return results, unmarshallingError
 		}
 
