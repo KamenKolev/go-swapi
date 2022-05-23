@@ -39,7 +39,6 @@ func convertSWAPIDevPlanetToPlanet(swapiPlanet SWAPIDevPlanet) (planetDTO, error
 	}, nil
 }
 
-// TODO dedupe with convertSWAPIDevPlanetToPlanet
 func convertSWAPITechPlanetToPlanet(swapiPlanet SWAPITechPlanet) (planetDTO, error) {
 	diameter, diameterConvError := numericStringOrUnknownToFloatOrNil(swapiPlanet.Diameter)
 	if diameterConvError != nil {
