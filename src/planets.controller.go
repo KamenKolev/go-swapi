@@ -18,8 +18,11 @@ func planetsController() func(http.ResponseWriter, *http.Request) {
 	if marshallingError != nil {
 		log.Fatalln("[planets.controller]", "marshalling error", marshallingError)
 	}
+
 	return func(writer http.ResponseWriter, req *http.Request) {
 		addHeaders(writer)
 		writer.Write(json)
 	}
 }
+
+// getAll() -> slow

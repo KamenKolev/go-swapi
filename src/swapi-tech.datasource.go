@@ -67,10 +67,8 @@ const SWAPITechAPIURL = "https://swapi.tech/api/"
 
 // resourceName is  should be in plural (people / planets)
 func SWAPITech_getAll[T any](resourceName string) ([]T, error) {
-	fmt.Println("[swapi-tech.datasource SWAPITech_getAll]", "triggered for", resourceName)
 	url := strings.Join([]string{SWAPITechAPIURL, resourceName, "?page=1&limit=100000"}, "")
 	initalResponse, err := getReadAndUnmarshall[SWAPITechResponse](url)
-	fmt.Println("[swapi-tech.datasource SWAPITech_getAll]", "initalResponse", initalResponse)
 
 	results := []T{}
 
@@ -79,7 +77,6 @@ func SWAPITech_getAll[T any](resourceName string) ([]T, error) {
 	}
 
 	for _, v := range initalResponse.Results {
-		fmt.Println("[swapi-tech.datasource SWAPITech_getAll]", "request triggered", resourceName, v)
 		item, error := getReadAndUnmarshall[SWAPITechSingleResourceResponse[T]](v.URL)
 		if error != nil {
 			fmt.Println("[swapi-tech.datasource SWAPITech_getAll]", "read or unmarshal error for", resourceName, v, error)

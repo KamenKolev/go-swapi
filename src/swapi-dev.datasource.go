@@ -70,7 +70,7 @@ func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 		return results, initialGetError
 	}
 
-	copy(results, firstRes.Results)
+	results = append(results, firstRes.Results...)
 
 	pages := int(math.Ceil(float64(firstRes.Count) / 10))
 
@@ -80,9 +80,8 @@ func getAllFromSWAPIDev[T any](resourceName string) ([]T, error) {
 			fmt.Println("[swapi-dev.datasource getAllFromSWAPIDev]", "request failed for page", page, "resource", resourceName)
 			return results, error
 		}
-		for i, v := range res.Results {
-			results[i+page*10-10] = v
-		}
+
+		results = append(results, res.Results...)
 	}
 
 	return results, nil

@@ -44,14 +44,14 @@ func numericStringOrUnknownToFloatOrNil(s string) (any, error) {
 }
 
 func convertMany[I any, O any](inputs []I, converter func(I) (O, error)) ([]O, error) {
-	results := make([]O, len(inputs))
-	for i, v := range inputs {
+	results := []O{}
+	for _, v := range inputs {
 		output, err := converter(v)
 		if err != nil {
-			fmt.Println("[utils convertMany]", "error thrown", err, v)
-			return results, err
+			fmt.Println("[utils convertMany]", "error thrown, skipping", err, v)
+		} else {
+			results = append(results, output)
 		}
-		results[i] = output
 	}
 
 	return results, nil
@@ -86,4 +86,26 @@ func getReadAndUnmarshall[T any](url string) (T, error) {
 	}
 
 	return result, nil
+}
+
+// works with nil and error only
+func hasError(collection []error) bool {
+	for _, v := range collection {
+		if v != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
+// there must be an error in the collection
+func getFirstError(collection []error) error {
+	for _, v := range collection {
+		if v != nil {
+			return v
+		}
+	}
+
+	return nil
 }

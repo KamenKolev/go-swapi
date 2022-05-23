@@ -1,14 +1,15 @@
-FROM golang:1.18-alpine
+FROM golang:1.18
 
 WORKDIR /app
 
-COPY go.mod ./
+COPY go.mod .
+COPY go.sum .
 RUN go mod download
 
 COPY ./src/*.go ./
 
-RUN go build -o /app
+RUN go build -o /swapi-go
 
 EXPOSE 8080
 
-CMD [ "/app" ]
+CMD [ "/swapi-go" ]

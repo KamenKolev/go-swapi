@@ -17,29 +17,24 @@ type personDTO struct {
 }
 
 func convertSWAPIPersonToPerson(swapiPerson SWAPITechPerson) (personDTO, error) {
-	fmt.Println("[people.service convertSWAPIPersonToPerson]", "converting", swapiPerson)
 	height, heightConversionError := numericStringOrUnknownToFloatOrNil(swapiPerson.Height)
-	if heightConversionError != nil {
-		return personDTO{}, heightConversionError
-	}
+
 	id, idConversionError := getResourceIDFromURL(swapiPerson.URL)
-	if idConversionError != nil {
-		return personDTO{}, idConversionError
-	}
 
-	var homeworld any
+	var planetID any
 	homeworld, homeworldConversionError := getResourceIDFromURL(swapiPerson.Homeworld)
-	if homeworldConversionError != nil {
-		return personDTO{}, homeworldConversionError
-	}
+
 	mass, massConvError := numericStringOrUnknownToFloatOrNil(swapiPerson.Mass)
-	if massConvError != nil {
-		return personDTO{}, massConvError
+
+	errList := []error{heightConversionError, idConversionError, homeworldConversionError, massConvError}
+	if hasError(errList) {
+		return personDTO{}, getFirstError(errList)
 	}
 
-	// Planet 28 is "unknown" and has zero other useful info. Better return null instead
-	if homeworld == 28 {
-		homeworld = nil
+	if planetIsValid(homeworld) {
+		planetID = homeworld
+	} else {
+		planetID = nil
 	}
 
 	return personDTO{
@@ -49,33 +44,29 @@ func convertSWAPIPersonToPerson(swapiPerson SWAPITechPerson) (personDTO, error) 
 		Mass:      mass,
 		Created:   swapiPerson.Created,
 		Edited:    swapiPerson.Edited,
-		Homeworld: homeworld,
+		Homeworld: planetID,
 	}, nil
 }
 
 func convertSWAPIDevPersonToPerson(swapiPerson SWAPIDevPerson) (personDTO, error) {
 	height, heightConversionError := numericStringOrUnknownToFloatOrNil(swapiPerson.Height)
-	if heightConversionError != nil {
-		return personDTO{}, heightConversionError
-	}
+
 	id, idConversionError := getResourceIDFromURL(swapiPerson.URL)
-	if idConversionError != nil {
-		return personDTO{}, idConversionError
-	}
 
-	var homeworld any
+	var planetID any
 	homeworld, homeworldConversionError := getResourceIDFromURL(swapiPerson.Homeworld)
-	if homeworldConversionError != nil {
-		return personDTO{}, homeworldConversionError
-	}
+
 	mass, massConvError := numericStringOrUnknownToFloatOrNil(swapiPerson.Mass)
-	if massConvError != nil {
-		return personDTO{}, massConvError
+
+	errList := []error{heightConversionError, idConversionError, homeworldConversionError, massConvError}
+	if hasError(errList) {
+		return personDTO{}, getFirstError(errList)
 	}
 
-	// Planet 28 is "unknown" and has zero other useful info. Better return null instead
-	if homeworld == 28 {
-		homeworld = nil
+	if planetIsValid(homeworld) {
+		planetID = homeworld
+	} else {
+		planetID = nil
 	}
 
 	return personDTO{
@@ -85,7 +76,7 @@ func convertSWAPIDevPersonToPerson(swapiPerson SWAPIDevPerson) (personDTO, error
 		Mass:      mass,
 		Created:   swapiPerson.Created,
 		Edited:    swapiPerson.Edited,
-		Homeworld: homeworld,
+		Homeworld: planetID,
 	}, nil
 }
 
