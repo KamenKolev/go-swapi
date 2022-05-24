@@ -7,8 +7,7 @@ import (
 )
 
 // handles GET requests to /, returns all items
-// caches all items in memory and sends them right away
-func planetsController() func(http.ResponseWriter, *http.Request) {
+func planetsController(writer http.ResponseWriter, req *http.Request) {
 	planets, error := getAllPlanets()
 	if error != nil {
 		log.Fatalln("[planets.controller]", "Could not fetch planets")
@@ -19,10 +18,11 @@ func planetsController() func(http.ResponseWriter, *http.Request) {
 		log.Fatalln("[planets.controller]", "marshalling error", marshallingError)
 	}
 
-	return func(writer http.ResponseWriter, req *http.Request) {
-		addHeaders(writer)
-		writer.Write(json)
+	if error != nil || marshallingError != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-}
 
-// getAll() -> slow
+	addHeaders(writer)
+	writer.Write(json)
+}

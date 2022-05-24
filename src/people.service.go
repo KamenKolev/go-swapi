@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -80,28 +79,38 @@ func convertSWAPIDevPersonToPerson(swapiPerson SWAPIDevPerson) (personDTO, error
 	}, nil
 }
 
+var personCache []personDTO
+
 // Attempts to fetch all people from swapi.dev first, then swapi.tech.
 // Them maps them to personDTO
+// caches results in personCache
 func getAllPeople() ([]personDTO, error) {
-	var results []personDTO
+	if len(personCache) != 0 {
+		return personCache, nil
+	}
+
 	SWAPIDevResults, SWAPIDevError := getAllFromSWAPIDev[SWAPIDevPerson]("people")
 
 	if SWAPIDevError != nil {
 		fmt.Println("[people.service getAllPeople]", "SWAPIDevError", SWAPIDevError)
 		SWAPITechResults, SWAPITechError := SWAPITech_getAll[SWAPITechPerson]("people")
 		if SWAPITechError != nil {
-			return results, SWAPITechError
+			return personCache, SWAPITechError
 		}
 		people, conversionError := convertMany(SWAPITechResults, convertSWAPIPersonToPerson)
 		if conversionError != nil {
-			log.Fatalln("[people.service getAllPeople]", "swapiTech people conversion error", conversionError)
+			fmt.Println("[people.service getAllPeople]", "swapiTech people conversion error", conversionError)
+			return personCache, conversionError
 		}
-		return people, nil
+		personCache = people
 	} else {
 		people, conversionError := convertMany(SWAPIDevResults, convertSWAPIDevPersonToPerson)
 		if conversionError != nil {
-			log.Fatalln("[people.service getAllPeople]", "swapiDev people conversion error", conversionError)
+			fmt.Println("[people.service getAllPeople]", "swapiDev people conversion error", conversionError)
+			return personCache, conversionError
 		}
-		return people, nil
+		personCache = people
 	}
+
+	return personCache, nil
 }

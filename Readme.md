@@ -1,8 +1,8 @@
-# A BFF written for an interview task
+# A BFF for a SWAPI front-end
 
-Gets data from either swapi.dev or swapi.tech and strips unneccessary data
+Gets data from either swapi.dev or swapi.tech and strips unneccessary fields
 
-Also converts strings to dates or null
+Converts all unknowns to null
 
 Supports getAll requests on /planets and /people
 

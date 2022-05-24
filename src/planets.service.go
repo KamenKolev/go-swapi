@@ -85,12 +85,11 @@ func convertSWAPITechPlanetToPlanet(swapiPlanet SWAPITechPlanet) (planetDTO, err
 
 var planetCache []planetDTO
 
+// caches results in planetCache
 func getAllPlanets() ([]planetDTO, error) {
 	if len(planetCache) != 0 {
 		return planetCache, nil
 	}
-
-	var results []planetDTO
 
 	SWAPIDevResults, SWAPIDevError := getAllFromSWAPIDev[SWAPIDevPlanet]("planets")
 
@@ -98,7 +97,7 @@ func getAllPlanets() ([]planetDTO, error) {
 		fmt.Println("[planets.service getAllPlanets]", "SWAPIDevError", SWAPIDevError)
 		SWAPITechResults, SWAPITechError := SWAPITech_getAll[SWAPITechPlanet]("planets")
 		if SWAPITechError != nil {
-			return results, SWAPITechError
+			return planetCache, SWAPITechError
 		}
 
 		planets, conversionError := convertMany(SWAPITechResults, convertSWAPITechPlanetToPlanet)
